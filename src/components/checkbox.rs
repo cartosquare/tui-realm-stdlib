@@ -218,8 +218,8 @@ impl MockComponent for Checkbox {
             let div = crate::utils::get_block(borders, title, focus, inactive_style);
             // Make colors
             let (bg, fg, block_color): (Color, Color, Color) = match &focus {
-                true => (foreground, background, foreground),
-                false => (Color::Reset, foreground, Color::Reset),
+                false => (foreground, background, foreground),
+                true => (Color::Reset, foreground, Color::Reset),
             };
             // Make choices
             let choices: Vec<Spans> = self

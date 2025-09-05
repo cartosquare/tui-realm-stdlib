@@ -3,6 +3,8 @@
 //! `Input` represents a read-write input field. This component supports different input types, input length
 //! and handles input events related to cursor position, backspace, canc, ...
 
+use std::usize;
+
 use super::props::{INPUT_INVALID_STYLE, INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_STYLE};
 use crate::utils::calc_utf8_cursor_position;
 use tuirealm::command::{Cmd, CmdResult, Direction, Position};
@@ -18,31 +20,37 @@ use tuirealm::{Frame, MockComponent, State, StateValue};
 pub struct InputStates {
     pub input: Vec<char>, // Current input
     pub cursor: usize,    // Input position
+    pub display_start: usize,
+    pub max_len: Option<usize>,
 }
 
 impl InputStates {
     /// ### append
     ///
     /// Append, if possible according to input type, the character to the input vec
-    pub fn append(&mut self, ch: char, itype: &InputType, max_len: Option<usize>) {
+    pub fn append(&mut self, ch: char, itype: &InputType, _max_len: Option<usize>) {
         // Check if max length has been reached
-        if self.input.len() < max_len.unwrap_or(usize::MAX) {
-            // Check whether can push
-            if itype.char_valid(self.input.iter().collect::<String>().as_str(), ch) {
-                self.input.insert(self.cursor, ch);
-                self.incr_cursor();
-            }
+        // if self.input.len() < max_len.unwrap_or(usize::MAX) {
+        // Check whether can push
+        if itype.char_valid(self.input.iter().collect::<String>().as_str(), ch) {
+            self.input.insert(self.display_start + self.cursor, ch);
+            self.incr_cursor();
         }
+        // }
     }
 
     /// ### backspace
     ///
     /// Delete element at cursor -1; then decrement cursor by 1
     pub fn backspace(&mut self) {
-        if self.cursor > 0 && !self.input.is_empty() {
-            self.input.remove(self.cursor - 1);
+        if self.display_start + self.cursor > 0 && !self.input.is_empty() {
+            self.input.remove(self.display_start + self.cursor - 1);
             // Decrement cursor
-            self.cursor -= 1;
+            if self.cursor > 0 {
+                self.cursor -= 1;
+            } else if self.display_start > 0 {
+                self.display_start -= 1;
+            }
         }
     }
 
@@ -50,8 +58,8 @@ impl InputStates {
     ///
     /// Delete element at cursor
     pub fn delete(&mut self) {
-        if self.cursor < self.input.len() {
-            self.input.remove(self.cursor);
+        if self.display_start + self.cursor < self.input.len() {
+            self.input.remove(self.display_start + self.cursor);
         }
     }
 
@@ -59,8 +67,12 @@ impl InputStates {
     ///
     /// Increment cursor value by one if possible
     pub fn incr_cursor(&mut self) {
-        if self.cursor < self.input.len() {
-            self.cursor += 1;
+        if self.display_start + self.cursor < self.input.len() {
+            if self.cursor < self.max_len.unwrap_or(usize::MAX) - 1 {
+                self.cursor += 1;
+            } else {
+                self.display_start += 1;
+            }
         }
     }
 
@@ -69,6 +81,7 @@ impl InputStates {
     /// Place cursor at the begin of the input
     pub fn cursor_at_begin(&mut self) {
         self.cursor = 0;
+        self.display_start = 0;
     }
 
     /// ### cursor_at_end
@@ -76,6 +89,7 @@ impl InputStates {
     /// Place cursor at the end of the input
     pub fn cursor_at_end(&mut self) {
         self.cursor = self.input.len();
+        self.display_start = 0;
     }
 
     /// ### decr_cursor
@@ -84,6 +98,8 @@ impl InputStates {
     pub fn decr_cursor(&mut self) {
         if self.cursor > 0 {
             self.cursor -= 1;
+        } else if self.display_start > 0 {
+            self.display_start -= 1;
         }
     }
 
@@ -100,11 +116,17 @@ impl InputStates {
     /// Render value as a vec of chars
     #[must_use]
     pub fn render_value_chars(&self, itype: InputType) -> Vec<char> {
+        let display_end =
+            if self.input.len() - self.display_start > self.max_len.unwrap_or(usize::MAX) {
+                self.max_len.unwrap() + self.display_start
+            } else {
+                self.input.len()
+            };
         match itype {
             InputType::Password(ch) | InputType::CustomPassword(ch, _, _) => {
-                (0..self.input.len()).map(|_| ch).collect()
+                (self.display_start..display_end).map(|_| ch).collect()
             }
-            _ => self.input.clone(),
+            _ => self.input[self.display_start..display_end].to_owned(),
         }
     }
 
@@ -330,8 +352,10 @@ impl MockComponent for Input {
             };
             self.states.input = Vec::new();
             self.states.cursor = 0;
+            self.states.display_start = 0;
             let itype = self.get_input_type();
             let max_len = self.get_input_len();
+            self.states.max_len = max_len;
             for ch in input {
                 self.states.append(ch, &itype, max_len);
             }

@@ -114,7 +114,7 @@ impl MockComponent for Sparkline {
             let widget: TuiSparkline = TuiSparkline::default()
                 .block(crate::utils::get_block(borders, Some(&title), false, None))
                 .data(data.as_slice())
-                .max(max_entries as u64)
+                .max(100)
                 .style(Style::default().fg(foreground).bg(background));
             // Render
             render.render_widget(widget, area);
