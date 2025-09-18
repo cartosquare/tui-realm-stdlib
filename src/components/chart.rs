@@ -6,6 +6,7 @@ use tuirealm::command::{Cmd, CmdResult, Direction, Position};
 use tuirealm::props::{
     Alignment, AttrValue, Attribute, Borders, Color, Dataset, PropPayload, PropValue, Props, Style,
 };
+use tuirealm::ratatui::style::Styled;
 use tuirealm::ratatui::text::Line;
 use tuirealm::ratatui::{
     layout::Rect,
@@ -372,7 +373,7 @@ impl MockComponent for Chart {
             // Get data
             let data: Vec<TuiDataset> = self.get_data(self.states.cursor);
             // Build widget
-            let widget: TuiChart = TuiChart::new(data).block(div).x_axis(x_axis).y_axis(y_axis);
+            let widget: TuiChart = TuiChart::new(data).block(div).x_axis(x_axis).y_axis(y_axis).style(Style::default().fg(foreground).bg(background));
             // Render
             render.render_widget(widget, area);
         }
