@@ -299,7 +299,7 @@ impl MockComponent for Chart {
                 .get(Attribute::FocusStyle)
                 .map(|x| x.unwrap_style());
             let active: bool = if self.is_disabled() { true } else { focus };
-            let div = crate::utils::get_block(borders, title.as_ref(), active, inactive_style);
+            let div = crate::utils::get_block(borders, title.as_ref(), active, inactive_style).style(Style::default().fg(foreground).bg(background));
             // Create widget
             // -- x axis
             let mut x_axis: Axis = Axis::default();
