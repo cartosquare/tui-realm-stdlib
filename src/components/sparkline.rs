@@ -41,6 +41,11 @@ impl Sparkline {
         self
     }
 
+    pub fn inactive(mut self, s: Style) -> Self {
+        self.attr(Attribute::FocusStyle, AttrValue::Style(s));
+        self
+    }
+
     pub fn max_entries(mut self, max: usize) -> Self {
         self.attr(Attribute::Width, AttrValue::Length(max));
         self
@@ -108,11 +113,25 @@ impl MockComponent for Sparkline {
                 .props
                 .get_or(Attribute::Width, AttrValue::Length(self.data_len()))
                 .unwrap_length();
+            let focus = self
+                .props
+                .get_or(Attribute::Focus, AttrValue::Flag(false))
+                .unwrap_flag();
+            let inactive_style = self
+                .props
+                .get(Attribute::FocusStyle)
+                .map(|x| x.unwrap_style());
+
             // Get data
             let data: Vec<u64> = self.get_data(max_entries);
             // Create widget
             let widget: TuiSparkline = TuiSparkline::default()
-                .block(crate::utils::get_block(borders, Some(&title), false, None))
+                .block(crate::utils::get_block(
+                    borders,
+                    Some(&title),
+                    focus,
+                    inactive_style,
+                ))
                 .data(data.as_slice())
                 .max(100)
                 .style(Style::default().fg(foreground).bg(background));
