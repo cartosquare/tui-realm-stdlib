@@ -199,11 +199,11 @@ impl MockComponent for Radio {
                 .map(|x| x.unwrap_style());
             let div = crate::utils::get_block(borders, title, focus, inactive_style);
             // Make colors
-            let (fg, block_color): (Color, Color) = if focus {
-                (foreground, foreground)
-            } else {
-                (foreground, Color::Reset)
-            };
+            // let (fg, block_color): (Color, Color) = if focus {
+            //     (foreground, foreground)
+            // } else {
+            //     (foreground, Color::Reset)
+            // };
             let modifiers = if focus {
                 TextModifiers::REVERSED
             } else {
@@ -212,8 +212,8 @@ impl MockComponent for Radio {
             let radio: Tabs = Tabs::new(choices)
                 .block(div)
                 .select(self.states.choice)
-                .style(Style::default().fg(block_color).bg(background))
-                .highlight_style(Style::default().fg(fg).add_modifier(modifiers));
+                .style(Style::default().fg(foreground).bg(background))
+                .highlight_style(Style::default().fg(foreground).add_modifier(modifiers));
             render.render_widget(radio, area);
         }
     }
