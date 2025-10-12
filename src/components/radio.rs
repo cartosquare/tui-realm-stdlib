@@ -204,16 +204,16 @@ impl MockComponent for Radio {
             // } else {
             //     (foreground, Color::Reset)
             // };
-            let modifiers = if focus {
-                TextModifiers::REVERSED
-            } else {
-                TextModifiers::empty()
-            };
+            // let modifiers = if focus {
+            //     TextModifiers::REVERSED
+            // } else {
+            //     TextModifiers::empty()
+            // };
             let radio: Tabs = Tabs::new(choices)
                 .block(div)
                 .select(self.states.choice)
                 .style(Style::default().fg(foreground).bg(background))
-                .highlight_style(Style::default().fg(foreground).add_modifier(modifiers));
+                .highlight_style(Style::default().fg(foreground).add_modifier(TextModifiers::REVERSED));
             render.render_widget(radio, area);
         }
     }
